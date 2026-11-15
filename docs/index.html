@@ -1,0 +1,374 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artist Medrano | Gestión de clientas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eee7de;color:#221d19;font:16px system-ui}main{max-width:660px;margin:auto;padding:20px}header,section{padding:22px;border-radius:18px;margin-bottom:16px}header{background:#211c18;color:#fff7ea}section{background:#fffaf4}h1{font:34px Georgia;margin:10px 0}h2{font:27px Georgia;margin:0 0 14px}small{letter-spacing:.12em;text-transform:uppercase}label{display:block;font-weight:600;margin:14px 0}select,textarea,input,button{font:inherit;padding:11px;border-radius:9px;min-height:46px}select,textarea,input{display:block;width:100%;margin-top:6px;background:white;border:1px solid #a79889}button{cursor:pointer;background:#211c18;color:white;border:0;margin:4px 4px 4px 0}button:disabled{opacity:.45;cursor:default}button.secondary{background:#e9ddd0;color:#221d19}details{margin:13px 0}summary{cursor:pointer}p{line-height:1.5}li{margin:9px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px}output{display:block} .tag{font-weight:700;color:#66462a}
+#search-wrap{position:relative}#clients{position:absolute;top:100%;left:0;right:0;z-index:30;margin-top:4px;border:1px solid #b9a99c;border-radius:10px;background:#fff;box-shadow:0 12px 26px #211c1829;max-height:270px;overflow-y:auto}#clients[hidden]{display:none}#clients button{display:block;width:100%;margin:0;padding:13px 14px;border-radius:0;text-align:left;background:#fff;color:#221d19;min-height:44px}#clients button+button{border-top:1px solid #eee7de}#clients button:hover,#clients button:focus-visible,#clients button.active{background:#e9ddd0;outline:0}#clients p{margin:12px;color:#6b5a50;font-size:14px}#clients mark{background:#f2d9ad;color:inherit;border-radius:2px}#search:focus{outline:2px solid #755c45;outline-offset:1px}.history-card{padding:16px 0;border-bottom:1px solid #e4d9cf}.history-card:last-child{border-bottom:0}.history-card h3{font-size:17px;margin:3px 0 7px}.history-card p{margin:5px 0;color:#64564b;font-size:14px}.history-meta{font-size:13px;font-weight:600;color:#735a46}.history-card button{margin-top:8px}.history-empty{color:#67594d}.client-selected{font-weight:600}.history-count{font-size:14px;color:#67594d;margin:0 0 5px}[hidden]{display:none!important}.top-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:15px;flex-wrap:wrap}.top-actions button{background:#54463a;font-size:14px}.subline{color:#776759;font-size:14px}.full-button{width:100%;margin-top:12px}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{flex:1;min-width:150px}.screen-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#7f6854;font-weight:700}.success-icon{font-size:40px;color:#416947}.note-panel{padding:14px;background:#f3e9df;border-radius:10px}.screen-controls{display:flex;justify-content:space-between;align-items:center;gap:10px}.readonly-notice{color:#69574a;font-size:14px}#history-section{margin-bottom:15px}#client-menu{overflow:visible}#finish-message{color:#655649}#practice{display:none} @media(max-width:520px){main{padding:12px}header,section{padding:18px}h1{font-size:29px}h2{font-size:24px}.actions{flex-direction:column}.actions button{width:100%}}
+
+#setup-panel,#auth-panel{border:1px solid #d1bfae}#setup-panel code{overflow-wrap:anywhere}
+#auth-panel .text-hint{font-size:14px;color:#6d5b4e}#auth-email{max-width:100%}
+#sign-out{font-size:13px;background:#54463a}#auth-status{min-height:20px;font-size:14px}
+</style>
+<main><header><small>Artist Medrano · Uso interno</small><h1>Gestión de clientas</h1><p>Diagnósticos e historial capilar</p><div class="top-actions"><small id="screen-title">Inicio</small><button type="button" id="home-button" hidden>⌂ Volver al inicio</button><button type="button" id="sign-out" hidden>Cerrar sesión</button></div></header>
+<section id="setup-panel" hidden><h2>Conectar el sistema</h2><p>El sitio está publicado, pero falta configurar la base de datos segura.</p><p>Configurá <code>docs/config.js</code> con los datos públicos de Supabase y ejecutá <code>supabase/schema.sql</code>. Consultá el archivo <code>LEEME.md</code> del proyecto.</p><p>Por seguridad, no permite guardar fichas sin una base de datos autenticada.</p></section>
+<section id="auth-panel" hidden><h2>Acceso del equipo</h2><p>Ingresá con el correo autorizado por Artist Medrano. Te llegará un enlace para acceder.</p><form id="auth-form"><label>Correo electrónico<input type="email" id="auth-email" autocomplete="email" required placeholder="tu-correo@ejemplo.com"></label><button type="submit" id="auth-submit">Enviar enlace de acceso</button></form><p id="auth-status" role="status"></p><p class="text-hint">El acceso es exclusivo para el personal autorizado. Las clientas no se publican en GitHub.</p></section>
+<section id="client-menu"><h2>Buscá una clienta</h2><label for="search">Nombre o apellido</label><div id="search-wrap"><input id="search" type="search" disabled autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="clients" aria-expanded="false" placeholder="Escribí el nombre o apellido…"><div id="clients" role="listbox" hidden></div></div><p id="directory-status" role="status"></p><button type="button" id="open-registration" disabled>Nueva clienta</button><details id="practice"><summary>Modo práctica · cargar respuestas de ejemplo</summary><div id="cases"></div></details></section><section id="profile" hidden><div class="screen-controls"><span class="screen-label">Ficha de clienta</span><button class="secondary" type="button" id="change-client">Cambiar clienta</button></div><h2 id="client" class="client-selected"></h2><p class="subline">Consultá los diagnósticos anteriores antes de realizar uno nuevo.</p><button type="button" class="full-button" id="new">+ Nuevo diagnóstico</button></section>
+<section id="registration" hidden><h2>Nueva clienta</h2><form id="register"><label>Nombre y apellido<input id="full-name" required maxlength="100" autocomplete="name"></label><label>Teléfono (opcional)<input id="phone" type="tel" maxlength="40" autocomplete="tel"></label><button id="register-button">Hacer diagnóstico</button><button type="button" class="secondary" id="cancel-registration">Cancelar</button><p id="registration-status" role="status"></p></form></section>
+<section id="diagnostic-heading" hidden><div class="screen-controls"><span class="screen-label">Diagnóstico de color</span><button type="button" class="secondary" id="back-to-client">Volver a la clienta</button></div><h2 id="diagnostic-client"></h2><p id="editing-note" class="readonly-notice"></p></section><form id="form" hidden>
+<section><h2>01 · Objetivo y base</h2><div id="base"></div></section>
+<section><h2>02 · Contraste y gloss</h2><div id="look"></div><details><summary>¿Cómo observo el contraste?</summary><p>Compará la profundidad visual del cabello, cejas y piel. Después preguntá cuánta diferencia quiere ver en el nuevo color.</p></details></section>
+<section><h2>03 · Evaluación técnica</h2><div id="checks"></div><label>Observaciones<textarea name="notes" rows="2"></textarea></label><button>Generar recomendación</button></section>
+</form>
+<section id="result" hidden><h2>04 · Recomendación</h2><output id="proposal" aria-live="polite"></output><label>Plan o decisión del colorista<textarea id="plan" rows="2"></textarea></label><label>Servicio aplicado<textarea id="service" rows="2"></textarea></label><button id="save">Guardar consulta</button><button id="approve">Validar y guardar</button><p id="message" role="status"></p></section>
+<section id="history-section" hidden><h2>Historial de diagnósticos</h2><div id="history" aria-live="polite"></div></section><section id="finished" hidden><span class="success-icon" aria-hidden="true">✓</span><h2>Diagnóstico guardado</h2><p id="finish-message" role="status">Se guardó correctamente en la base de datos segura.</p><div class="actions"><button type="button" id="finish-profile">Volver a la clienta</button><button type="button" class="secondary" id="finish-home">Atender otra clienta</button></div></section></main>
+<script src="./config.js"></script>
+<script type="module">
+import { createClient as createSupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+const settings = window.ARTIST_CONFIG || {};
+const configured = /^https:\/\/[^/]+\.supabase\.co$/.test(settings.supabaseUrl || '') && /^(sb_publishable_|eyJ)/.test(settings.supabaseAnonKey || '');
+const db = configured ? createSupabaseClient(settings.supabaseUrl, settings.supabaseAnonKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
+let activeStaffId = null;
+function requireData(data,error){if(error)throw new Error(error.message || 'Error de la base de datos');return data;}
+const backend = {
+ async listClients(){
+  const {data,error}=await db.from('clients').select('id,full_name,phone').order('full_name',{ascending:true}).limit(1000);
+  return requireData(data,error).map(x=>({id:x.id,name:x.full_name,phone:x.phone}));
+ },
+ async createClient(name,phone){
+  name=String(name||'').trim().replace(/\s+/g,' ');phone=String(phone||'').trim();
+  if(!name||name.length>100||phone.length>40)throw new Error('Revisá el nombre (máximo 100 caracteres) y el teléfono (máximo 40).');
+  const {data,error}=await db.from('clients').insert({full_name:name,phone:phone||null}).select('id,full_name').single();
+  return {id:requireData(data,error).id,name:data.full_name};
+ },
+ async listVisits(clientId){
+  const {data,error}=await db.from('diagnoses').select('id,client_id,visit_date,status,plan,service,answers,recommendation').eq('client_id',clientId).order('created_at',{ascending:true}).limit(1000);
+  return requireData(data,error).map(x=>({id:x.id,client:x.client_id,date:x.visit_date,status:x.status,plan:x.plan||'',service:x.service||'',answers:x.answers,recommendation:x.recommendation||''}));
+ },
+ async saveVisit(record){
+  if(!record||!record.answers||!record.client||!record.id||JSON.stringify(record).length>16000)throw new Error('Diagnóstico inválido.');
+  const decision=recommend(record.answers)[0],approved=record.status==='Validado';
+  if(approved&&(decision!=='Listo para revisión'||!String(record.plan||'').trim()))throw new Error('El plan requiere revisión técnica antes de validarse.');
+  const stored={
+   id:String(record.id),client_id:String(record.client),visit_date:String(record.date||new Date().toLocaleDateString('es-AR')),
+   status:approved?'Validado':decision,plan:String(record.plan||''),service:approved?String(record.service||''):'',
+   answers:record.answers,recommendation:String(record.recommendation||''),updated_at:new Date().toISOString()
+  };
+  const {data,error}=await db.from('diagnoses').upsert(stored,{onConflict:'id'}).select('id,client_id,visit_date,status,plan,service,answers,recommendation').single();
+  const x=requireData(data,error);
+  return {id:x.id,client:x.client_id,date:x.visit_date,status:x.status,plan:x.plan,service:x.service,answers:x.answers,recommendation:x.recommendation};
+ }
+};
+async function verifyAccess(user){
+ try{
+  if(!user){activeStaffId=null;screenTo('login');return;}
+  if(activeStaffId===user.id)return;
+  const {data,error}=await db.from('salon_staff').select('email,active').eq('email',String(user.email||'').toLowerCase()).eq('active',true).maybeSingle();
+  requireData(data,error);
+  if(!data){activeStaffId=null;await db.auth.signOut();screenTo('login');by('auth-status').textContent='Esta cuenta no está autorizada. Consultá a quien administra Artist Medrano.';return;}
+  activeStaffId=user.id;screenTo('home');
+  by('directory-status').textContent='Cargando clientas…';
+  const rows=await backend.listClients();
+  clients=rows;by('search').disabled=false;by('open-registration').disabled=false;by('directory-status').textContent='';
+ }catch(error){by('directory-status').textContent='No pudimos cargar las clientas: '+error.message;screenTo('home');}
+}
+
+const by=id=>document.getElementById(id);
+const form=by('form');
+const cases=[
+ {name:'Sofía · Gloss',goal:'Mantener',gloss:'Brillo',tone:'Chocolate',strand:'Apta',allergy:'Verificación completada',prior:'Confirmado'},
+ {name:'Martina · Antecedentes incompletos',goal:'Aclarar',gloss:'Quiere asesoramiento',tone:'Camel brunette',strand:'Pendiente de definir',allergy:'Pendiente de definir',prior:'Desconocido en la zona'},
+ {name:'Valentina · Mechón no apto',goal:'Aclarar',gloss:'No desea',tone:'Camel brunette',strand:'No apta',allergy:'Verificación completada',prior:'Confirmado',contrast:'Marcado',tipsFiber:'Quiebre'}
+];
+const fiber=['Favorable','Sensibilizada','Quiebre','Elasticidad alterada','Sin evaluar'];
+const levels=['No determinado',...Array.from({length:10},(_,i)=>String(i+1))];
+const help={
+ goal:'Marcá el cambio más importante para la clienta en esta visita.',
+ root:'Compará la raíz con la carta de color del salón. Si dudás, elegí «No determinado».',
+ mid:'Mirá el largo entre la raíz y las puntas. Puede tener otro nivel.',
+ tips:'Evaluá el extremo del pelo por separado. Si dudás, elegí «No determinado».',
+ prior:'Preguntá qué se hizo, en qué zona y cuándo. Si no lo recuerda, marcá «Desconocido en la zona».',
+ observed:'Registrá el contraste que ves hoy entre el pelo, las cejas y la piel.',
+ contrast:'Preguntá si quiere que el cambio de color se vea sutil, intermedio o marcado.',
+ tone:'Usá una foto de referencia para acordar el efecto visual con la clienta.',
+ gloss:'Preguntá si busca brillo, refrescar el tono, matizar un reflejo o dar profundidad. El colorista define el producto.',
+ strand:'Registrá el resultado para el plan evaluado. Si todavía no se decidió si corresponde, elegí «Pendiente de definir».',
+ allergy:'Consultá el protocolo del producto con el colorista y registrá el estado de la verificación.'
+};
+const field=(name,label,options)=>'<label>'+label+(help[name]?'<span style="display:block;font-weight:400;font-size:.88em;margin-top:4px">'+help[name]+'</span>':'')+'<select required name="'+name+'"><option value="">Seleccioná una opción</option>'+options.map(v=>'<option>'+v+'</option>').join('')+'</select></label>';
+const zones=(suffix,options)=>'<div class="grid">'+['Raíz','Medios','Puntas'].map((z,i)=>field(['root','mid','tips'][i]+suffix,z,options)).join('')+'</div>';
+by('base').innerHTML=field('goal','Objetivo principal',['Mantener','Oscurecer','Aclarar','Difuminar canas','Cubrir canas','Matizar'])+field('avoid','Qué quiere evitar',['Sin definir','Muy oscuro','Muy claro','Muy cálido','Muy frío','Crecimiento marcado'])+field('upkeep','Mantenimiento',['Bajo','Moderado','Frecuente','A conversar'])+zones('',levels)+field('gray','Canas en raíz',['Sin evaluar','0 %','1–25 %','26–50 %','51–75 %','76–100 %'])+field('prior','Antecedente en la zona del plan',['Confirmado','Desconocido en la zona'])+'<label>Procesos previos por zona y fecha aproximada<textarea name="process" rows="2"></textarea></label>';
+by('look').innerHTML=field('observed','Contraste observado',['Bajo','Medio','Alto','Sin evaluar'])+field('contrast','Contraste deseado',['Suave','Moderado','Marcado'])+field('tone','Inspiración',['Chocolate','Camel brunette','Rojizo profundo','Balayage suave','Morena iluminada','Decoloración global','Mechas globales','Corrección de color','Ruchado','Baby Hair','Babylights','Contouring','Por definir'])+field('gloss','Objetivo del gloss',['Brillo','Refrescar color','Matizar reflejos','Dar profundidad','No desea','Quiere asesoramiento']);
+by('checks').innerHTML='<p>Estado de la fibra por zona. Si no sabés cómo clasificarla, marcá «Sin evaluar» y pedí ayuda al colorista.</p>'+zones('Fiber',fiber)+field('strand','Prueba de mechón',['Pendiente de definir','Requerida y pendiente','Apta','No apta','No corresponde según evaluación'])+field('allergy','Prueba de alergia según fabricante',['Pendiente de definir','Requerida y pendiente','Verificación completada','Resultado incompatible con el plan','No corresponde según fabricante']);
+let visits=[], connected=false, saving=false;
+let screen='home', dirty=false, priorSaved=false;
+let current=null,id='',snapshot=null;
+function button(label,action,parent){
+ const el=document.createElement('button');el.type='button';el.className='secondary';el.textContent=label;el.onclick=action;parent.append(el);
+}
+let clients=[];
+let historyRequest=0;
+let searchActive=-1;
+function screenTo(target){
+ screen=target;
+ for(const key of ['setup-panel','auth-panel','client-menu','registration','profile','history-section','diagnostic-heading','finished'])by(key).hidden=true;
+ form.hidden=true;by('result').hidden=true;
+ if(target==='setup')by('setup-panel').hidden=false;
+ if(target==='login')by('auth-panel').hidden=false;
+ if(target==='home')by('client-menu').hidden=false;
+ if(target==='registration')by('registration').hidden=false;
+ if(target==='profile'){by('profile').hidden=false;by('history-section').hidden=false;}
+ if(target==='diagnostic'){by('diagnostic-heading').hidden=false;form.hidden=false;by('result').hidden=!snapshot;}
+ if(target==='finished')by('finished').hidden=false;
+ by('screen-title').textContent={setup:'Configuración',login:'Acceso',home:'Inicio',registration:'Nueva clienta',profile:'Ficha de clienta',diagnostic:'Diagnóstico de color',finished:'Guardado correcto'}[target];
+ by('home-button').hidden=['home','login','setup'].includes(target);
+ by('sign-out').hidden=!activeStaffId;
+ window.scrollTo({top:0,behavior:'instant'});
+}
+function confirmExit(){
+ if(saving)return false;
+ if(dirty && !window.confirm('Hay cambios sin guardar en el diagnóstico. ¿Querés salir y descartarlos?'))return false;
+ dirty=false;return true;
+}
+function goHome(){
+ if(!confirmExit())return;
+ ++historyRequest;current=null;visits=[];connected=false;snapshot=null;priorSaved=false;
+ by('search').value='';closeSuggestions();by('register').reset();screenTo('home');
+}
+function goProfile(){
+ if(!confirmExit())return;
+ if(current===null){goHome();return}
+ snapshot=null;screenTo('profile');historyView();
+}
+function openDiagnostic(visit=null, practice=false){
+ if(saving||current===null||!confirmExit())return;
+ reset(current,visit,practice,true);
+ priorSaved=!!visit;dirty=false;
+ by('diagnostic-client').textContent=by('client').textContent;
+ by('editing-note').textContent=visit?'Consulta anterior: podés revisarla. Si guardás modificaciones, se actualiza ese mismo registro.':'Nuevo diagnóstico · completá la evaluación técnica.';
+ if(visit){show();dirty=false;}
+ screenTo('diagnostic');
+}
+function selectClient(client, practice=false, openForm=practice){
+ if(saving||!activeStaffId)return;
+ by('search').value='';
+ closeSuggestions();
+ visits=[];
+ connected=false;
+ reset(client,null,practice,openForm);
+ if(openForm){ priorSaved=false;dirty=false;by('diagnostic-client').textContent=by('client').textContent;by('editing-note').textContent='Nuevo diagnóstico · completá la evaluación técnica.';screenTo('diagnostic'); } else {dirty=false;screenTo('profile');}
+ const request=++historyRequest;
+ by('history').textContent='Cargando visitas…';
+ backend.listVisits(client).then(rows=>{
+   if(request!==historyRequest)return;
+   if(!Array.isArray(rows))throw new Error('Respuesta de historial inválida');
+   visits=rows;
+   connected=true;
+   historyView();
+ }).catch(error=>{
+   if(request===historyRequest){connected=false;by('history').textContent='No se pudo cargar el historial: '+(error?.message||'Revisá la conexión y volvé a seleccionar a la clienta.');}
+ });
+}
+function searchKey(value){
+ return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
+}
+function closeSuggestions(){
+ const box=by('clients');box.hidden=true;box.replaceChildren();searchActive=-1;
+ by('search').setAttribute('aria-expanded','false');
+ by('search').removeAttribute('aria-activedescendant');
+}
+function setActiveSuggestion(index){
+ const options=[...by('clients').querySelectorAll('[role="option"]')];
+ if(!options.length)return;
+ searchActive=(index+options.length)%options.length;
+ options.forEach((el,i)=>{el.classList.toggle('active',i===searchActive);el.setAttribute('aria-selected',String(i===searchActive))});
+ by('search').setAttribute('aria-activedescendant',options[searchActive].id);
+ options[searchActive].scrollIntoView({block:'nearest'});
+}
+function renderClients(){
+ const box=by('clients');box.replaceChildren();searchActive=-1;
+ by('search').removeAttribute('aria-activedescendant');
+ const query=searchKey(by('search').value);
+ if(!query||by('search').disabled){closeSuggestions();return}
+ const terms=query.split(/\s+/);
+ const matches=clients.filter(client=>terms.every(term=>searchKey(client.name).includes(term))).slice(0,30);
+ if(!matches.length){
+   const note=document.createElement('p');note.textContent='No se encontraron clientas con ese nombre.';box.append(note);
+ }else{
+   matches.forEach((client,i)=>{
+     const el=document.createElement('button');el.type='button';el.id='suggestion-'+i;
+     el.setAttribute('role','option');el.setAttribute('aria-selected','false');
+     // Fragmentos seguros: jamás insertar nombres provenientes de Sheets con innerHTML.
+     const name=String(client.name);const normalized=searchKey(name);
+     const pos=normalized.indexOf(terms[0]);
+     if(pos>=0 && normalized.length===name.length){
+       el.append(document.createTextNode(name.slice(0,pos)));
+       const mark=document.createElement('mark');mark.textContent=name.slice(pos,pos+terms[0].length);el.append(mark);
+       el.append(document.createTextNode(name.slice(pos+terms[0].length)));
+     }else el.textContent=name;
+     if(typeof client.id==='number')el.append(document.createTextNode(' · Prueba'));
+     el.addEventListener('mousedown',e=>e.preventDefault());
+     el.addEventListener('click',()=>selectClient(client.id));
+     box.append(el);
+   });
+ }
+ box.hidden=false;by('search').setAttribute('aria-expanded','true');
+}
+function reset(index,visit,practice=false,openForm=false){
+ current=index;id=visit?.id||String(Date.now())+Math.random();snapshot=null;form.reset();
+ form.hidden=!openForm;
+ if(practice)for(const select of form.querySelectorAll('select'))select.selectedIndex=1;
+ const data=visit?.answers||(practice?{root:'5',mid:'5',tips:'6',gray:'0 %',process:['Tintura en medios y puntas','Proceso en largos sin identificar','Decoloración en puntas'][index],...cases[index]}:{});
+ for(const [k,v] of Object.entries(data))if(form.elements.namedItem(k))form.elements.namedItem(k).value=v;
+ by('client').textContent=index===null?'Seleccioná una clienta para ver su historial o iniciar un diagnóstico.':practice?cases[index].name:clients.find(client=>client.id===index)?.name||cases[index]?.name;
+ by('result').hidden=true;by('plan').value=visit?.plan||'';by('service').value=visit?.service||'';historyView();
+}
+function historyView(){
+ const box=by('history');box.replaceChildren();
+ if(current===null){box.textContent='Buscá y seleccioná una clienta para ver sus diagnósticos.';return}
+ if(!connected){box.textContent='Cargando diagnósticos…';return}
+ const rows=visits.filter(v=>String(v.client)===String(current)).slice().reverse();
+ if(!rows.length){
+   const p=document.createElement('p');p.className='history-empty';p.textContent='No se encontraron diagnósticos guardados para esta clienta.';box.append(p);return;
+ }
+ const count=document.createElement('p');count.className='history-count';count.textContent=rows.length===1?'1 diagnóstico registrado':`${rows.length} diagnósticos registrados`;box.append(count);
+ for(const v of rows){
+   const card=document.createElement('article');card.className='history-card';
+   const meta=document.createElement('div');meta.className='history-meta';meta.textContent=[v.date||'Sin fecha',v.status||'Sin estado'].join(' · ');card.append(meta);
+   const title=document.createElement('h3');title.textContent=v.answers?.goal||'Diagnóstico de color';card.append(title);
+   if(v.plan){const plan=document.createElement('p');plan.textContent='Plan: '+v.plan;card.append(plan)}
+   if(v.service){const service=document.createElement('p');service.textContent='Servicio: '+v.service;card.append(service)}
+   button('Ver diagnóstico',()=>openDiagnostic(v),card);
+   box.append(card);
+ }
+}
+function recommend(a){
+ const blocked=a.strand==='No apta'||a.allergy==='Resultado incompatible con el plan';
+ const review=[a.rootFiber,a.midFiber,a.tipsFiber].some(v=>v!=='Favorable');
+ if(blocked)return ['Reformular o posponer',a.strand==='No apta'?'La prueba de mechón dio no apta para este plan. Registrá la decisión y consultá al colorista antes de evaluar otra opción.':'El resultado de la verificación de alergia es incompatible con este plan. Registrá la decisión y consultá al colorista.'];
+ const missing=[];
+ if(a.prior.startsWith('Desconocido'))missing.push('confirmar los procesos previos en la zona a trabajar');
+ if(a.strand.toLowerCase().includes('pendiente'))missing.push('resolver el estado de la prueba de mechón');
+ if(a.allergy.toLowerCase().includes('pendiente'))missing.push('resolver la verificación de alergia según el producto');
+ const zonesMissing=[['raíz',a.root],['medios',a.mid],['puntas',a.tips]].filter(([,level])=>level==='No determinado').map(([zone])=>zone);
+ if(zonesMissing.length)missing.push('determinar el nivel en '+zonesMissing.join(', '));
+ if(missing.length)return ['Pendiente de verificación','Antes de validar: '+missing.join(' · ')+'.'];
+ if(review)return ['Revisión técnica de la fibra','El colorista debe revisar las zonas sensibilizadas, con quiebre, elasticidad alterada o sin evaluar antes de definir el plan.'];
+ return ['Listo para revisión','El colorista puede comparar el resultado deseado con la base y validar un plan.'];
+}
+function show(){
+ const a=Object.fromEntries(new FormData(form));const [status,note]=recommend(a);
+ snapshot={answers:a,status};const ready=status==='Listo para revisión';
+ const items=[note,'Objetivo visual: '+a.goal.toLowerCase()+' con contraste '+a.contrast.toLowerCase()+(a.tone==='Por definir'?'.':' e inspiración '+a.tone.toLowerCase()+'.'),a.gloss==='No desea'?'Gloss: fuera de la propuesta por preferencia de la clienta.':ready?'Gloss: evaluar si el objetivo «'+a.gloss.toLowerCase()+'» justifica trabajar todo el cabello o solo las zonas que lo necesitan.':'Gloss: la decisión queda pendiente de revisión.',ready?'Alternativa de menor intervención: conservar la base y limitar cualquier ajuste a las zonas necesarias, según evaluación.':'Alternativa: conservar el color actual mientras se revisa el plan.','Mantenimiento: '+a.upkeep.toLowerCase()+'. Confirmar con la clienta antes de cerrar.'];
+ const out=by('proposal');out.replaceChildren();
+ const heading=document.createElement('p');heading.className='tag';heading.textContent=status;out.append(heading);
+ const list=document.createElement('ul');for(const item of items){const li=document.createElement('li');li.textContent=item;list.append(li)}out.append(list);
+ by('approve').disabled=!ready;by('service').disabled=!ready;
+ by('message').textContent='Recomendación de demostración generada por reglas.';
+ by('result').hidden=false;
+}
+function save(approved){
+ if(!connected){by('message').textContent='La conexión con la base de datos todavía no está disponible.';return}
+ if(saving||!snapshot||approved&&snapshot.status!=='Listo para revisión')return;
+ const plan=by('plan').value.trim(),service=by('service').value.trim();
+ if(approved&&!plan){by('message').textContent='Registrá el plan del colorista antes de validar.';return}
+ const old=visits.find(v=>v.id===id);
+ const record={...snapshot,id,client:current,date:old?.date||new Date().toLocaleDateString('es-AR'),plan,service:approved?service:'',status:approved?'Validado':snapshot.status,recommendation:by('proposal').innerText};
+ saving=true;
+ by('message').textContent='Guardando de forma segura…';
+ backend.saveVisit(record).then(saved=>{
+   saving=false;
+   visits=[...visits.filter(v=>v.id!==saved.id),saved];
+   historyView();
+   dirty=false;priorSaved=true;by('finish-message').textContent='La consulta de '+(by('client').textContent||'la clienta')+' quedó guardada correctamente.';screenTo('finished');
+ }).catch(error=>{
+   saving=false;
+   by('message').textContent='No se pudo guardar: '+error.message+'. Podés reintentar esta misma visita.';
+ });
+
+}
+cases.forEach((item,index)=>button(item.name,()=>selectClient(index,true),by('cases')));
+by('search').addEventListener('input',renderClients);
+by('search').addEventListener('focus',renderClients);
+by('search').addEventListener('keydown',e=>{
+ const options=[...by('clients').querySelectorAll('[role="option"]')];
+ if(e.key==='Escape'){closeSuggestions();return}
+ if(!options.length||by('clients').hidden)return;
+ if(e.key==='ArrowDown'){e.preventDefault();setActiveSuggestion(searchActive+1)}
+ else if(e.key==='ArrowUp'){e.preventDefault();setActiveSuggestion(searchActive<0?options.length-1:searchActive-1)}
+ else if(e.key==='Enter'){e.preventDefault();options[searchActive<0?0:searchActive].click()}
+});
+document.addEventListener('pointerdown',e=>{if(!by('search-wrap').contains(e.target))closeSuggestions()});
+function showRegistration(open){
+ if(open){if(!confirmExit())return;screenTo('registration');by('full-name').focus();}
+ else{screenTo('home');}
+}
+by('open-registration').onclick=()=>{if(!saving)showRegistration(true)};
+by('cancel-registration').onclick=()=>showRegistration(false);
+by('home-button').onclick=goHome;
+by('change-client').onclick=goHome;
+by('back-to-client').onclick=goProfile;
+by('finish-profile').onclick=goProfile;
+by('finish-home').onclick=goHome;
+by('register').onsubmit=event=>{
+ event.preventDefault();
+ if(saving||!activeStaffId)return;
+ const submit=by('register-button');
+ submit.disabled=true;
+ by('cancel-registration').disabled=true;
+ by('registration-status').textContent='Guardando datos…';
+ backend.createClient(by('full-name').value,by('phone').value).then(client=>{
+   clients.push(client);
+   showRegistration(false);
+   by('register').reset();
+   by('registration-status').textContent='';
+   by('full-name').value='';
+   submit.disabled=false;
+   by('cancel-registration').disabled=false;
+   by('directory-status').textContent='Ficha creada.';
+   selectClient(client.id,false,true);
+ }).catch(error=>{
+   submit.disabled=false;
+   by('cancel-registration').disabled=false;
+   by('registration-status').textContent='No se pudo crear la ficha: '+error.message;
+ });
+};
+form.onsubmit=e=>{e.preventDefault();show();dirty=true;by('result').scrollIntoView()};
+form.oninput=()=>{dirty=true;snapshot=null;by('result').hidden=true};
+by('plan').addEventListener('input',()=>dirty=true);by('service').addEventListener('input',()=>dirty=true);
+window.addEventListener('beforeunload',event=>{if(dirty&&!saving){event.preventDefault();event.returnValue='';}});
+by('new').onclick=()=>openDiagnostic();
+by('save').onclick=()=>save(false);
+by('approve').onclick=()=>save(true);
+reset(null);screenTo('setup');
+by('auth-form').onsubmit=async event=>{
+ event.preventDefault();if(!db)return;
+ const button=by('auth-submit');button.disabled=true;
+ by('auth-status').textContent='Enviando enlace de acceso…';
+ try{
+  const {error}=await db.auth.signInWithOtp({email:by('auth-email').value.trim(),options:{emailRedirectTo:location.origin+location.pathname}});
+  if(error)throw error;
+  by('auth-status').textContent='Revisá tu correo y abrí el enlace de acceso desde este dispositivo.';
+ }catch(error){by('auth-status').textContent='No se pudo enviar el enlace: '+error.message;}
+ finally{button.disabled=false;}
+};
+by('sign-out').onclick=async()=>{
+ if(!confirmExit())return;
+ activeStaffId=null;clients=[];visits=[];current=null;connected=false;++historyRequest;
+ by('search').disabled=true;by('open-registration').disabled=true;
+ if(db)await db.auth.signOut();screenTo('login');
+};
+if(!db){screenTo('setup');}
+else{
+ screenTo('login');
+ db.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'){activeStaffId=null;clients=[];visits=[];current=null;connected=false;++historyRequest;by('search').disabled=true;by('open-registration').disabled=true;screenTo('login');}
+  if(event==='SIGNED_IN'&&session?.user){
+   // Evitar consultas dentro del callback interno de autenticación.
+   setTimeout(()=>verifyAccess(session.user),0);
+  }
+ });
+ db.auth.getSession().then(({data,error})=>{
+  if(error){by('auth-status').textContent=error.message;return;}
+  if(data.session?.user)verifyAccess(data.session.user);
+ }).catch(error=>by('auth-status').textContent=error.message);
+}
+
+</script></html>

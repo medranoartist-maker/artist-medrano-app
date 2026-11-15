@@ -1,0 +1,7 @@
+*.json.backup
+*.private.json
+*.client-data.*
+*.secret
+.env
+.env.*
+!README.md
