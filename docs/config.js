@@ -1,4 +1,4 @@
 window.ARTIST_CONFIG = {
   supabaseUrl: 'https://phvprmheomypsimfxxsi.supabase.co',
-  supabaseAnonKey: 'PEGAR_AQUI_LA_CLAVE_PUBLICA'
+  supabaseAnonKey: 'sb_publishable_eSXnZjfrRN6wsTB1bQfn4A_06s1Ii6D'
 };
