@@ -19,7 +19,7 @@
 </form>
 <section id="result" hidden><h2>04 · Recomendación</h2><output id="proposal" aria-live="polite"></output><label>Plan o decisión del colorista<textarea id="plan" rows="2"></textarea></label><label>Servicio aplicado<textarea id="service" rows="2"></textarea></label><button id="save">Guardar consulta</button><button id="approve">Validar y guardar</button><p id="message" role="status"></p></section>
 <section id="history-section" hidden><h2>Historial de diagnósticos</h2><div id="history" aria-live="polite"></div></section><section id="finished" hidden><span class="success-icon" aria-hidden="true">✓</span><h2>Diagnóstico guardado</h2><p id="finish-message" role="status">Se guardó correctamente en la base de datos segura.</p><div class="actions"><button type="button" id="finish-profile">Volver a la clienta</button><button type="button" class="secondary" id="finish-home">Atender otra clienta</button></div></section></main>
-<script src="./config.js"></script>
+<script src="./config.js?v=7"></script>
 <script type="module">
 import { createClient as createSupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
 const settings = window.ARTIST_CONFIG || {};
