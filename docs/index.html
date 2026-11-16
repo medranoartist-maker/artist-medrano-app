@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artist Medrano | Gestión de clientas</title>
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artist Medrano | Prueba funcional V6</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eee7de;color:#221d19;font:16px system-ui}main{max-width:660px;margin:auto;padding:20px}header,section{padding:22px;border-radius:18px;margin-bottom:16px}header{background:#211c18;color:#fff7ea}section{background:#fffaf4}h1{font:34px Georgia;margin:10px 0}h2{font:27px Georgia;margin:0 0 14px}small{letter-spacing:.12em;text-transform:uppercase}label{display:block;font-weight:600;margin:14px 0}select,textarea,input,button{font:inherit;padding:11px;border-radius:9px;min-height:46px}select,textarea,input{display:block;width:100%;margin-top:6px;background:white;border:1px solid #a79889}button{cursor:pointer;background:#211c18;color:white;border:0;margin:4px 4px 4px 0}button:disabled{opacity:.45;cursor:default}button.secondary{background:#e9ddd0;color:#221d19}details{margin:13px 0}summary{cursor:pointer}p{line-height:1.5}li{margin:9px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px}output{display:block} .tag{font-weight:700;color:#66462a}
 #search-wrap{position:relative}#clients{position:absolute;top:100%;left:0;right:0;z-index:30;margin-top:4px;border:1px solid #b9a99c;border-radius:10px;background:#fff;box-shadow:0 12px 26px #211c1829;max-height:270px;overflow-y:auto}#clients[hidden]{display:none}#clients button{display:block;width:100%;margin:0;padding:13px 14px;border-radius:0;text-align:left;background:#fff;color:#221d19;min-height:44px}#clients button+button{border-top:1px solid #eee7de}#clients button:hover,#clients button:focus-visible,#clients button.active{background:#e9ddd0;outline:0}#clients p{margin:12px;color:#6b5a50;font-size:14px}#clients mark{background:#f2d9ad;color:inherit;border-radius:2px}#search:focus{outline:2px solid #755c45;outline-offset:1px}.history-card{padding:16px 0;border-bottom:1px solid #e4d9cf}.history-card:last-child{border-bottom:0}.history-card h3{font-size:17px;margin:3px 0 7px}.history-card p{margin:5px 0;color:#64564b;font-size:14px}.history-meta{font-size:13px;font-weight:600;color:#735a46}.history-card button{margin-top:8px}.history-empty{color:#67594d}.client-selected{font-weight:600}.history-count{font-size:14px;color:#67594d;margin:0 0 5px}[hidden]{display:none!important}.top-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:15px;flex-wrap:wrap}.top-actions button{background:#54463a;font-size:14px}.subline{color:#776759;font-size:14px}.full-button{width:100%;margin-top:12px}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{flex:1;min-width:150px}.screen-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#7f6854;font-weight:700}.success-icon{font-size:40px;color:#416947}.note-panel{padding:14px;background:#f3e9df;border-radius:10px}.screen-controls{display:flex;justify-content:space-between;align-items:center;gap:10px}.readonly-notice{color:#69574a;font-size:14px}#history-section{margin-bottom:15px}#client-menu{overflow:visible}#finish-message{color:#655649}#practice{display:none} @media(max-width:520px){main{padding:12px}header,section{padding:18px}h1{font-size:29px}h2{font-size:24px}.actions{flex-direction:column}.actions button{width:100%}}
@@ -6,11 +6,16 @@
 #setup-panel,#auth-panel{border:1px solid #d1bfae}#setup-panel code{overflow-wrap:anywhere}
 #auth-panel .text-hint{font-size:14px;color:#6d5b4e}#auth-email{max-width:100%}
 #sign-out{font-size:13px;background:#54463a}#auth-status{min-height:20px;font-size:14px}
+
+.demo-ribbon{background:#634824;color:#fff9ed;border:1px solid #96754b;border-radius:12px;padding:14px 18px;margin:0 0 12px;font-size:14px;line-height:1.45}
+.demo-ribbon strong{display:block;font-size:15px;margin-bottom:2px}
+.demo-ribbon span{display:block}
+.demo-ribbon button{border:1px solid #fff9ed;background:transparent;color:#fff9ed;margin:8px 0 0;padding:8px 12px;min-height:36px;font-size:13px}
 </style>
-<main><header><small>Artist Medrano · Uso interno</small><h1>Gestión de clientas</h1><p>Diagnósticos e historial capilar</p><div class="top-actions"><small id="screen-title">Inicio</small><button type="button" id="home-button" hidden>⌂ Volver al inicio</button><button type="button" id="sign-out" hidden>Cerrar sesión</button></div></header>
+<main><div class="demo-ribbon" role="note"><strong>MODO PRUEBA V6 · SIN CONTRASEÑA</strong><span>Usá únicamente datos ficticios. La prueba no se conecta con Supabase ni con Google Sheets. Los datos nunca se comparten entre dispositivos.</span><span id="demo-persistence-status" role="status" style="margin-top:8px;font-weight:600"></span><button type="button" id="reset-demo">Reiniciar datos ficticios</button></div><header><small>Artist Medrano · Demostración de uso</small><h1>Gestión de clientas</h1><p>Diagnósticos e historial capilar</p><div class="top-actions"><small id="screen-title">Inicio</small><button type="button" id="home-button" hidden>⌂ Volver al inicio</button><button type="button" id="sign-out" hidden>Cerrar sesión</button></div></header>
 <section id="setup-panel" hidden><h2>Conectar el sistema</h2><p>El sitio está publicado, pero falta configurar la base de datos segura.</p><p>Configurá <code>docs/config.js</code> con los datos públicos de Supabase y ejecutá <code>supabase/schema.sql</code>. Consultá el archivo <code>LEEME.md</code> del proyecto.</p><p>Por seguridad, no permite guardar fichas sin una base de datos autenticada.</p></section>
 <section id="auth-panel" hidden><h2>Acceso del equipo</h2><p>Ingresá con el correo autorizado por Artist Medrano. Te llegará un enlace para acceder.</p><form id="auth-form"><label>Correo electrónico<input type="email" id="auth-email" autocomplete="email" required placeholder="tu-correo@ejemplo.com"></label><button type="submit" id="auth-submit">Enviar enlace de acceso</button></form><p id="auth-status" role="status"></p><p class="text-hint">El acceso es exclusivo para el personal autorizado. Las clientas no se publican en GitHub.</p></section>
-<section id="client-menu"><h2>Buscá una clienta</h2><label for="search">Nombre o apellido</label><div id="search-wrap"><input id="search" type="search" disabled autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="clients" aria-expanded="false" placeholder="Escribí el nombre o apellido…"><div id="clients" role="listbox" hidden></div></div><p id="directory-status" role="status"></p><button type="button" id="open-registration" disabled>Nueva clienta</button><details id="practice"><summary>Modo práctica · cargar respuestas de ejemplo</summary><div id="cases"></div></details></section><section id="profile" hidden><div class="screen-controls"><span class="screen-label">Ficha de clienta</span><button class="secondary" type="button" id="change-client">Cambiar clienta</button></div><h2 id="client" class="client-selected"></h2><p class="subline">Consultá los diagnósticos anteriores antes de realizar uno nuevo.</p><button type="button" class="full-button" id="new">+ Nuevo diagnóstico</button></section>
+<section id="client-menu"><h2>Buscá una clienta</h2><label for="search">Nombre o apellido</label><div id="search-wrap"><input id="search" type="search" disabled autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="clients" aria-expanded="false" placeholder="Escribí el nombre o apellido…"><div id="clients" role="listbox" hidden></div></div><p id="directory-status" role="status"></p><button type="button" id="open-registration" disabled>Nueva clienta</button><details id="practice"><summary>Modo práctica · cargar respuestas de ejemplo</summary><div id="cases"></div></details></section><section id="profile" hidden><div class="screen-controls"><span class="screen-label">Ficha de clienta</span><button class="secondary" type="button" id="change-client">Cambiar clienta</button></div><h2 id="client" class="client-selected"></h2><p class="subline">Consultá los diagnósticos anteriores antes de realizar uno nuevo.</p><button type="button" class="full-button" id="new">+ Nuevo diagnóstico</button><button type="button" class="secondary" id="new-client-from-profile">+ Registrar otra clienta</button></section>
 <section id="registration" hidden><h2>Nueva clienta</h2><form id="register"><label>Nombre y apellido<input id="full-name" required maxlength="100" autocomplete="name"></label><label>Teléfono (opcional)<input id="phone" type="tel" maxlength="40" autocomplete="tel"></label><button id="register-button">Hacer diagnóstico</button><button type="button" class="secondary" id="cancel-registration">Cancelar</button><p id="registration-status" role="status"></p></form></section>
 <section id="diagnostic-heading" hidden><div class="screen-controls"><span class="screen-label">Diagnóstico de color</span><button type="button" class="secondary" id="back-to-client">Volver a la clienta</button></div><h2 id="diagnostic-client"></h2><p id="editing-note" class="readonly-notice"></p></section><form id="form" hidden>
 <section><h2>01 · Objetivo y base</h2><div id="base"></div></section>
@@ -18,58 +23,80 @@
 <section><h2>03 · Evaluación técnica</h2><div id="checks"></div><label>Observaciones<textarea name="notes" rows="2"></textarea></label><button>Generar recomendación</button></section>
 </form>
 <section id="result" hidden><h2>04 · Recomendación</h2><output id="proposal" aria-live="polite"></output><label>Plan o decisión del colorista<textarea id="plan" rows="2"></textarea></label><label>Servicio aplicado<textarea id="service" rows="2"></textarea></label><button id="save">Guardar consulta</button><button id="approve">Validar y guardar</button><p id="message" role="status"></p></section>
-<section id="history-section" hidden><h2>Historial de diagnósticos</h2><div id="history" aria-live="polite"></div></section><section id="finished" hidden><span class="success-icon" aria-hidden="true">✓</span><h2>Diagnóstico guardado</h2><p id="finish-message" role="status">Se guardó correctamente en la base de datos segura.</p><div class="actions"><button type="button" id="finish-profile">Volver a la clienta</button><button type="button" class="secondary" id="finish-home">Atender otra clienta</button></div></section></main>
-<script src="./config.js?v=7"></script>
-<script type="module">
-import { createClient as createSupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-const settings = window.ARTIST_CONFIG || {};
-const configured = /^https:\/\/[^/]+\.supabase\.co$/.test(settings.supabaseUrl || '') && /^(sb_publishable_|eyJ)/.test(settings.supabaseAnonKey || '');
-const db = configured ? createSupabaseClient(settings.supabaseUrl, settings.supabaseAnonKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
-let activeStaffId = null;
-function requireData(data,error){if(error)throw new Error(error.message || 'Error de la base de datos');return data;}
-const backend = {
+<section id="history-section" hidden><h2>Historial de diagnósticos</h2><div id="history" aria-live="polite"></div></section><section id="finished" hidden><span class="success-icon" aria-hidden="true">✓</span><h2>Diagnóstico guardado</h2><p id="finish-message" role="status">Se guardó en este navegador (solo demostración).</p><div class="actions"><button type="button" id="finish-profile">Volver a la clienta</button><button type="button" class="secondary" id="finish-home">Buscar otra clienta</button><button type="button" id="finish-new">+ Otro diagnóstico (misma clienta)</button><button type="button" class="secondary" id="finish-register">+ Registrar otra clienta</button></div></section></main>
+<script>
+// VERSIÓN DE DEMOSTRACIÓN: no hace solicitudes de red y no incorpora credenciales.
+// Los datos de prueba viven exclusivamente en localStorage del navegador.
+const STORE_KEY = 'artist-medrano-demo-v1';
+const initialStore = () => ({
+  clients: [
+    {id:'demo-sofia',name:'Sofía',phone:''},
+    {id:'demo-luisa',name:'Luisa',phone:''},
+    {id:'demo-martina',name:'Martina',phone:''}
+  ],
+  visits: [{
+    id:'demo-consulta-sofia-1', client:'demo-sofia', date:'10/11/2026',
+    status:'Validado',plan:'Conservar base y evaluar brillo (ejemplo ficticio).',
+    service:'Gloss (demostración)',recommendation:'Registro ficticio de prueba.',
+    answers:{goal:'Mantener',avoid:'Muy cálido',upkeep:'Moderado',root:'5',mid:'5',tips:'6',gray:'0 %',
+      prior:'Confirmado',process:'Sin antecedentes (ejemplo).',observed:'Medio',contrast:'Suave',tone:'Chocolate',
+      gloss:'Brillo',rootFiber:'Favorable',midFiber:'Favorable',tipsFiber:'Favorable',
+      strand:'Apta',allergy:'Verificación completada',notes:'Consulta de ejemplo, no real.'}
+  }]
+});
+let storageAvailable = true;
+function readStore(){
+ try{
+  const saved=localStorage.getItem(STORE_KEY);
+  const parsed=saved?JSON.parse(saved):null;
+  if(parsed && Array.isArray(parsed.clients) && Array.isArray(parsed.visits))return parsed;
+ }catch(error){storageAvailable=false;}
+ return initialStore();
+}
+let localStore=readStore();
+function writeStore(){
+ // En vistas previas y archivos locales el navegador puede impedir usar localStorage.
+ // La demo mantiene las fichas en memoria para que el flujo se pueda probar igual.
+ if(!storageAvailable)return false;
+ try{localStorage.setItem(STORE_KEY,JSON.stringify(localStore));return true;}
+ catch(error){
+  storageAvailable=false;
+  showStorageStatus();
+  return false;
+ }
+}
+function showStorageStatus(){
+ const el=document.getElementById('demo-persistence-status');
+ if(el)el.textContent=storageAvailable
+  ? 'Guardado local habilitado: las pruebas deberían conservarse en este navegador.'
+  : 'Modo temporal: podés probar todo, pero al recargar se perderán las fichas creadas. Para conservarlas, abrí la prueba desde GitHub Pages en un navegador normal.';
+}
+let activeStaffId='demo-only';
+const backend={
  async listClients(){
-  const {data,error}=await db.from('clients').select('id,full_name,phone').order('full_name',{ascending:true}).limit(1000);
-  return requireData(data,error).map(x=>({id:x.id,name:x.full_name,phone:x.phone}));
+  return localStore.clients.map(c=>({...c})).sort((a,b)=>a.name.localeCompare(b.name,'es'));
  },
  async createClient(name,phone){
   name=String(name||'').trim().replace(/\s+/g,' ');phone=String(phone||'').trim();
   if(!name||name.length>100||phone.length>40)throw new Error('Revisá el nombre (máximo 100 caracteres) y el teléfono (máximo 40).');
-  const {data,error}=await db.from('clients').insert({full_name:name,phone:phone||null}).select('id,full_name').single();
-  return {id:requireData(data,error).id,name:data.full_name};
+  const next={id:'demo-client-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),name,phone};
+  localStore.clients.push(next);try{writeStore()}catch(e){localStore.clients.pop();throw e}
+  return {...next};
  },
  async listVisits(clientId){
-  const {data,error}=await db.from('diagnoses').select('id,client_id,visit_date,status,plan,service,answers,recommendation').eq('client_id',clientId).order('created_at',{ascending:true}).limit(1000);
-  return requireData(data,error).map(x=>({id:x.id,client:x.client_id,date:x.visit_date,status:x.status,plan:x.plan||'',service:x.service||'',answers:x.answers,recommendation:x.recommendation||''}));
+  return localStore.visits.filter(v=>String(v.client)===String(clientId)).map(v=>structuredClone(v));
  },
  async saveVisit(record){
   if(!record||!record.answers||!record.client||!record.id||JSON.stringify(record).length>16000)throw new Error('Diagnóstico inválido.');
   const decision=recommend(record.answers)[0],approved=record.status==='Validado';
   if(approved&&(decision!=='Listo para revisión'||!String(record.plan||'').trim()))throw new Error('El plan requiere revisión técnica antes de validarse.');
-  const stored={
-   id:String(record.id),client_id:String(record.client),visit_date:String(record.date||new Date().toLocaleDateString('es-AR')),
-   status:approved?'Validado':decision,plan:String(record.plan||''),service:approved?String(record.service||''):'',
-   answers:record.answers,recommendation:String(record.recommendation||''),updated_at:new Date().toISOString()
-  };
-  const {data,error}=await db.from('diagnoses').upsert(stored,{onConflict:'id'}).select('id,client_id,visit_date,status,plan,service,answers,recommendation').single();
-  const x=requireData(data,error);
-  return {id:x.id,client:x.client_id,date:x.visit_date,status:x.status,plan:x.plan,service:x.service,answers:x.answers,recommendation:x.recommendation};
+  const saved={...record,status:approved?'Validado':decision};
+  const oldIndex=localStore.visits.findIndex(v=>v.id===saved.id);
+  if(oldIndex<0){localStore.visits.push(saved);try{writeStore()}catch(e){localStore.visits.pop();throw e}}
+  else{const previous=localStore.visits[oldIndex];localStore.visits[oldIndex]=saved;try{writeStore()}catch(e){localStore.visits[oldIndex]=previous;throw e}}
+  return structuredClone(saved);
  }
 };
-async function verifyAccess(user){
- try{
-  if(!user){activeStaffId=null;screenTo('login');return;}
-  if(activeStaffId===user.id)return;
-  const {data,error}=await db.from('salon_staff').select('email,active').eq('email',String(user.email||'').toLowerCase()).eq('active',true).maybeSingle();
-  requireData(data,error);
-  if(!data){activeStaffId=null;await db.auth.signOut();screenTo('login');by('auth-status').textContent='Esta cuenta no está autorizada. Consultá a quien administra Artist Medrano.';return;}
-  activeStaffId=user.id;screenTo('home');
-  by('directory-status').textContent='Cargando clientas…';
-  const rows=await backend.listClients();
-  clients=rows;by('search').disabled=false;by('open-registration').disabled=false;by('directory-status').textContent='';
- }catch(error){by('directory-status').textContent='No pudimos cargar las clientas: '+error.message;screenTo('home');}
-}
-
 const by=id=>document.getElementById(id);
 const form=by('form');
 const cases=[
@@ -119,7 +146,7 @@ function screenTo(target){
  if(target==='finished')by('finished').hidden=false;
  by('screen-title').textContent={setup:'Configuración',login:'Acceso',home:'Inicio',registration:'Nueva clienta',profile:'Ficha de clienta',diagnostic:'Diagnóstico de color',finished:'Guardado correcto'}[target];
  by('home-button').hidden=['home','login','setup'].includes(target);
- by('sign-out').hidden=!activeStaffId;
+ by('sign-out').hidden=true;
  window.scrollTo({top:0,behavior:'instant'});
 }
 function confirmExit(){
@@ -272,12 +299,12 @@ function save(approved){
  const old=visits.find(v=>v.id===id);
  const record={...snapshot,id,client:current,date:old?.date||new Date().toLocaleDateString('es-AR'),plan,service:approved?service:'',status:approved?'Validado':snapshot.status,recommendation:by('proposal').innerText};
  saving=true;
- by('message').textContent='Guardando de forma segura…';
+ by('message').textContent='Guardando en este navegador…';
  backend.saveVisit(record).then(saved=>{
    saving=false;
    visits=[...visits.filter(v=>v.id!==saved.id),saved];
    historyView();
-   dirty=false;priorSaved=true;by('finish-message').textContent='La consulta de '+(by('client').textContent||'la clienta')+' quedó guardada correctamente.';screenTo('finished');
+   dirty=false;priorSaved=true;by('finish-message').textContent='La consulta de '+(by('client').textContent||'la clienta')+(storageAvailable?' quedó guardada localmente en este navegador.':' está guardada temporalmente. Al recargar la página se perderá.');screenTo('finished');
  }).catch(error=>{
    saving=false;
    by('message').textContent='No se pudo guardar: '+error.message+'. Podés reintentar esta misma visita.';
@@ -322,7 +349,7 @@ by('register').onsubmit=event=>{
    by('full-name').value='';
    submit.disabled=false;
    by('cancel-registration').disabled=false;
-   by('directory-status').textContent='Ficha creada.';
+   by('directory-status').textContent=storageAvailable?'Ficha ficticia creada y guardada localmente.':'Ficha ficticia creada para esta sesión (se perderá al recargar).';
    selectClient(client.id,false,true);
  }).catch(error=>{
    submit.disabled=false;
@@ -335,40 +362,21 @@ form.oninput=()=>{dirty=true;snapshot=null;by('result').hidden=true};
 by('plan').addEventListener('input',()=>dirty=true);by('service').addEventListener('input',()=>dirty=true);
 window.addEventListener('beforeunload',event=>{if(dirty&&!saving){event.preventDefault();event.returnValue='';}});
 by('new').onclick=()=>openDiagnostic();
+by('new-client-from-profile').onclick=()=>showRegistration(true);
+by('finish-new').onclick=()=>openDiagnostic();
+by('finish-register').onclick=()=>showRegistration(true);
 by('save').onclick=()=>save(false);
 by('approve').onclick=()=>save(true);
-reset(null);screenTo('setup');
-by('auth-form').onsubmit=async event=>{
- event.preventDefault();if(!db)return;
- const button=by('auth-submit');button.disabled=true;
- by('auth-status').textContent='Enviando enlace de acceso…';
- try{
-  const {error}=await db.auth.signInWithOtp({email:by('auth-email').value.trim(),options:{emailRedirectTo:location.origin+location.pathname}});
-  if(error)throw error;
-  by('auth-status').textContent='Revisá tu correo y abrí el enlace de acceso desde este dispositivo.';
- }catch(error){by('auth-status').textContent='No se pudo enviar el enlace: '+error.message;}
- finally{button.disabled=false;}
+reset(null);
+clients=localStore.clients.map(c=>({...c}));
+by('search').disabled=false;
+by('open-registration').disabled=false;
+showStorageStatus();
+by('directory-status').textContent='Para crear: Nueva clienta → Hacer diagnóstico. Para una existente: buscala → Nuevo diagnóstico.';
+by('reset-demo').onclick=()=>{
+ if(!window.confirm('¿Borrar las clientas y los diagnósticos ficticios de este navegador?'))return;
+ try{localStorage.removeItem(STORE_KEY)}catch(error){}
+ location.reload();
 };
-by('sign-out').onclick=async()=>{
- if(!confirmExit())return;
- activeStaffId=null;clients=[];visits=[];current=null;connected=false;++historyRequest;
- by('search').disabled=true;by('open-registration').disabled=true;
- if(db)await db.auth.signOut();screenTo('login');
-};
-if(!db){screenTo('setup');}
-else{
- screenTo('login');
- db.auth.onAuthStateChange((event,session)=>{
-  if(event==='SIGNED_OUT'){activeStaffId=null;clients=[];visits=[];current=null;connected=false;++historyRequest;by('search').disabled=true;by('open-registration').disabled=true;screenTo('login');}
-  if(event==='SIGNED_IN'&&session?.user){
-   // Evitar consultas dentro del callback interno de autenticación.
-   setTimeout(()=>verifyAccess(session.user),0);
-  }
- });
- db.auth.getSession().then(({data,error})=>{
-  if(error){by('auth-status').textContent=error.message;return;}
-  if(data.session?.user)verifyAccess(data.session.user);
- }).catch(error=>by('auth-status').textContent=error.message);
-}
-
+screenTo('home');
 </script></html>
