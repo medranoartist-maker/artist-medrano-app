@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Artist Medrano | Respaldo V6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eee7de;color:#211c18;font:16px system-ui}
+main{max-width:640px;margin:0 auto;padding:22px}header{background:#211c18;color:white;padding:24px;border-radius:18px}
+h1{font:30px Georgia,serif;margin:8px 0}section{background:#fffaf4;border-radius:18px;padding:24px;margin-top:16px}
+p{line-height:1.5}.notice{padding:14px;border-radius:10px;background:#fff1d8}button{background:#211c18;color:white;border:0;border-radius:9px;padding:14px 18px;font:inherit;cursor:pointer}button:disabled{opacity:.5}
+a{color:#5c422e}small{letter-spacing:.1em}#status{font-weight:600}
+</style></head><body><main><header><small>ARTIST MEDRANO · RESGUARDO</small><h1>Respaldo de las clientas de la V6</h1></header>
+<section><p>Esta herramienta busca registros guardados en <strong>este mismo navegador</strong> por la versión V6. No envía datos por internet.</p>
+<p class="notice">Abrila desde el Samsung de Mariela, en el navegador habitual y fuera de incógnito. El archivo descargado puede contener información personal: guardalo en privado, sin subirlo a GitHub ni enviarlo por chat.</p>
+<p id="status">Comprobando datos guardados…</p>
+<button id="export" type="button" disabled>Descargar respaldo JSON</button>
+<p><a href="./index.html">Volver a la aplicación</a></p></section></main>
+<script>
+(() => {
+  'use strict';
+  const key='artist-medrano-demo-v1';
+  const status=document.getElementById('status');
+  const button=document.getElementById('export');
+  let data=null;
+  try {
+    const raw=localStorage.getItem(key);
+    const parsed=raw?JSON.parse(raw):null;
+    if(parsed && Array.isArray(parsed.clients) && Array.isArray(parsed.visits)) {
+      data=parsed;
+      const registered=data.clients.filter(c=>String(c.id||'').startsWith('demo-client-'));
+      const ids=new Set(registered.map(c=>c.id));
+      const related=data.visits.filter(v=>ids.has(v.client));
+      status.textContent='Encontradas '+registered.length+' clientas nuevas y '+related.length+' visitas asociadas. El respaldo incluirá todos los datos locales, incluidos los ejemplos.';
+      button.disabled=false;
+    } else {
+      status.textContent='No hay datos persistidos de V6 en este navegador. Probá en el dispositivo donde se cargaron.';
+    }
+  } catch(e) {
+    status.textContent='No se pudo leer el almacenamiento. Usá el mismo navegador habitual, fuera de incógnito.';
+  }
+  button.addEventListener('click',()=>{
+    if(!data)return;
+    const payload={format:'artist-medrano-v6-backup',exportedAt:new Date().toISOString(),store:data};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='artist-medrano-respaldo-v6-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    status.textContent='Respaldo descargado. No borres aún los datos de este navegador.';
+  });
+})();
+</script></body></html>
