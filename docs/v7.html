@@ -9,7 +9,7 @@
 </style>
 <main><header><small>Artist Medrano · V7 compartida (prueba)</small><h1>Gestión de clientas</h1><p>Diagnósticos e historial capilar</p><div class="top-actions"><small id="screen-title">Inicio</small><button type="button" id="home-button" hidden>⌂ Volver al inicio</button><button type="button" id="sign-out" hidden>Cerrar sesión</button></div></header>
 <section id="setup-panel" hidden><h2>Conectar el sistema</h2><p>El sitio está publicado, pero falta configurar la base de datos segura.</p><p>Configurá <code>docs/config.js</code> con los datos públicos de Supabase y ejecutá <code>supabase/schema.sql</code>. Consultá el archivo <code>LEEME.md</code> del proyecto.</p><p>Por seguridad, no permite guardar fichas sin una base de datos autenticada.</p></section>
-<section id="auth-panel" hidden><h2>Acceso del equipo · V7</h2><p>Ingresá con correo y contraseña. Tu sesión queda guardada en este navegador.</p><form id="auth-form"><label>Correo electrónico<input type="email" id="auth-email" autocomplete="username" required placeholder="Correo autorizado"></label><label>Contraseña<input type="password" id="auth-password" autocomplete="current-password" required minlength="8"></label><button type="submit" id="auth-submit">Ingresar</button></form><p id="auth-status" role="status" aria-live="polite"></p><details><summary>Primera vez: todavía no tengo contraseña</summary><p>Si ya ingresaste con un enlace en este navegador, la sesión puede mantenerse. Desde la pantalla principal podrás crear tu contraseña sin enviar emails.</p><label>Correo para activar (solo si es necesario)<input type="email" id="activation-email"></label><button type="button" class="secondary" id="activation-link">Solicitar enlace de activación</button><p>El correo de prueba de Supabase tiene límite de envíos. No lo uses para entrar todos los días.</p></details><p class="text-hint">Solo el personal registrado en salon_staff puede consultar las fichas. No compartas tu contraseña.</p></section>
+<section id="auth-panel" hidden><h2>Acceso del equipo · V7</h2><p>Ingresá con correo y contraseña. Tu sesión queda guardada en este navegador.</p><form id="auth-form"><label>Correo electrónico<input type="email" id="auth-email" autocomplete="username" required placeholder="Correo autorizado"></label><label>Contraseña<input type="password" id="auth-password" autocomplete="current-password" required minlength="8"></label><button type="submit" id="auth-submit">Ingresar</button></form><p id="auth-status" role="status" aria-live="polite"></p><button id="check-session" type="button" class="secondary">Comprobar mi sesión</button><details><summary>Primera vez: todavía no tengo contraseña</summary><p>Si ya ingresaste con un enlace en este navegador, la sesión puede mantenerse. Desde la pantalla principal podrás crear tu contraseña sin enviar emails.</p><label>Correo para activar (solo si es necesario)<input type="email" id="activation-email"></label><button type="button" class="secondary" id="activation-link">Solicitar enlace de activación</button><p>El correo de prueba de Supabase tiene límite de envíos. No lo uses para entrar todos los días.</p></details><p class="text-hint">Solo el personal registrado en salon_staff puede consultar las fichas. No compartas tu contraseña.</p></section>
 <section id="client-menu"><h2>Buscá una clienta</h2><label for="search">Nombre o apellido</label><div id="search-wrap"><input id="search" type="search" disabled autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="clients" aria-expanded="false" placeholder="Escribí el nombre o apellido…"><div id="clients" role="listbox" hidden></div></div><p id="directory-status" role="status"></p><button type="button" id="open-registration" disabled>Nueva clienta</button><details id="practice"><summary>Modo práctica · cargar respuestas de ejemplo</summary><div id="cases"></div></details>
 <details id="v7-tools"><summary>Herramientas de V7</summary><p>Estas operaciones requieren haber iniciado sesión con una cuenta autorizada.</p><button type="button" id="open-password" class="secondary">Crear o cambiar mi contraseña</button><button type="button" id="open-import" class="secondary">Importar respaldo V6</button></details></section><section id="profile" hidden><div class="screen-controls"><span class="screen-label">Ficha de clienta</span><button class="secondary" type="button" id="change-client">Cambiar clienta</button></div><h2 id="client" class="client-selected"></h2><p class="subline">Consultá los diagnósticos anteriores antes de realizar uno nuevo.</p><button type="button" class="full-button" id="new">+ Nuevo diagnóstico</button></section>
 <section id="registration" hidden><h2>Nueva clienta</h2><form id="register"><label>Nombre y apellido<input id="full-name" required maxlength="100" autocomplete="name"></label><label>Teléfono (opcional)<input id="phone" type="tel" maxlength="40" autocomplete="tel"></label><button id="register-button">Hacer diagnóstico</button><button type="button" class="secondary" id="cancel-registration">Cancelar</button><p id="registration-status" role="status"></p></form></section>
@@ -25,6 +25,14 @@
 <script src="./config.js?v=7-preview-1"></script>
 <script type="module">
 import { createClient as createSupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+// Mostrar errores públicos de retorno sin mostrar ni registrar códigos ni tokens de autenticación.
+const loginReturn = (() => {
+ const query = new URLSearchParams(location.search);
+ const hash = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
+ const code = hash.get('error_code') || query.get('error_code') || hash.get('error') || query.get('error') || '';
+ const message = hash.get('error_description') || query.get('error_description') || '';
+ return {code:String(code).slice(0,80),message:String(message).slice(0,180)};
+})();
 const settings = window.ARTIST_CONFIG || {};
 const configured = /^https:\/\/[^/]+\.supabase\.co$/.test(settings.supabaseUrl || '') && /^(sb_publishable_|eyJ)/.test(settings.supabaseAnonKey || '');
 const db = configured ? createSupabaseClient(settings.supabaseUrl, settings.supabaseAnonKey, {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
@@ -388,6 +396,28 @@ by('start-import').onclick=async()=>{
 };
 
 reset(null);screenTo('setup');
+by('check-session').onclick=async()=>{
+ if(!db){by('auth-status').textContent='Falta configurar la conexión segura con Supabase.';return;}
+ by('auth-status').textContent='Comprobando la sesión en Supabase…';
+ try{
+  const {data,error}=await db.auth.getSession();
+  if(error)throw error;
+  if(!data?.session?.user){
+   by('auth-status').textContent=loginReturn.code
+    ? 'El enlace fue rechazado: '+loginReturn.code+(loginReturn.message?' · '+loginReturn.message:'')
+    : 'No hay una sesión activa en este navegador. El enlace pudo haberse abierto en otro perfil o no completó el ingreso.';
+   return;
+  }
+  const {data:staff,error:staffError}=await db.from('salon_staff').select('active').eq('email',String(data.session.user.email||'').toLowerCase()).eq('active',true).maybeSingle();
+  if(staffError)throw staffError;
+  if(!staff){
+   by('auth-status').textContent='La sesión está activa, pero este correo no figura como personal autorizado. Revisá la tabla salon_staff.';
+   return;
+  }
+  by('auth-status').textContent='Sesión activa y autorizada. Abriendo clientas…';
+  await verifyAccess(data.session.user);
+ }catch(error){by('auth-status').textContent='Error al comprobar la sesión: '+(error.message||error);}
+};
 by('auth-form').onsubmit=async event=>{
  event.preventDefault();if(!db)return;
  const button=by('auth-submit');button.disabled=true;by('auth-status').textContent='Comprobando acceso…';
@@ -431,6 +461,7 @@ by('sign-out').onclick=async()=>{
 if(!db){screenTo('setup');}
 else{
  screenTo('login');
+ if(loginReturn.code){by('auth-status').textContent='Supabase rechazó el enlace: '+loginReturn.code+(loginReturn.message?' · '+loginReturn.message:'');}
  db.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){activeStaffId=null;clients=[];visits=[];current=null;connected=false;++historyRequest;by('search').disabled=true;by('open-registration').disabled=true;screenTo('login');}
   if(event==='SIGNED_IN'&&session?.user){
@@ -439,8 +470,9 @@ else{
   }
  });
  db.auth.getSession().then(({data,error})=>{
-  if(error){by('auth-status').textContent=error.message;return;}
+  if(error){by('auth-status').textContent='No se pudo recuperar sesión: '+error.message;return;}
   if(data.session?.user)verifyAccess(data.session.user);
+  else if(!loginReturn.code)by('auth-status').textContent='No hay una sesión activa. Pulsá «Comprobar mi sesión» para revisar el estado.';
  }).catch(error=>by('auth-status').textContent=error.message);
 }
 
